@@ -1,6 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerJob = {}
 local patt = "[?!@#]"
+local totilitotot = nil
 PhoneData = {
     MetaData = {},
     isOpen = false,
@@ -33,9 +34,9 @@ function string:split(delimiter)
     local from  = 1
     local delim_from, delim_to = string.find( self, delimiter, from  )
     while delim_from do
-        table.insert( result, string.sub( self, from , delim_from-1 ) )
-        from  = delim_to + 1
-        delim_from, delim_to = string.find( self, delimiter, from  )
+      table.insert( result, string.sub( self, from , delim_from-1 ) )
+      from  = delim_to + 1
+      delim_from, delim_to = string.find( self, delimiter, from  )
     end
     table.insert( result, string.sub( self, from  ) )
     return result
@@ -261,8 +262,7 @@ local function LoadPhone()
             PhoneData = PhoneData,
             PlayerData = PhoneData.PlayerData,
             PlayerJob = PhoneData.PlayerData.job,
-            applications = Config.PhoneApplications,
-            PlayerId = GetPlayerServerId(PlayerId())
+            applications = Config.PhoneApplications
         })
     end)
 end
@@ -271,7 +271,7 @@ local function OpenPhone()
     QBCore.Functions.TriggerCallback('qb-phone:server:HasPhone', function(HasPhone)
         if HasPhone then
             PhoneData.PlayerData = QBCore.Functions.GetPlayerData()
-            SetNuiFocus(true, true)
+    	    SetNuiFocus(true, true)
             SendNUIMessage({
                 action = "open",
                 Tweets = PhoneData.Tweets,
@@ -460,7 +460,7 @@ end
 RegisterCommand('phone', function()
     PlayerData = QBCore.Functions.GetPlayerData()
     if not PhoneData.isOpen and LocalPlayer.state.isLoggedIn then
-        if not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() then
+        if not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() and GetSelectedPedWeapon(PlayerPedId()) == -1569615261 then
             OpenPhone()
         else
             QBCore.Functions.Notify("Action not available at the moment..", "error")
@@ -921,6 +921,8 @@ end)
 
 RegisterNUICallback('SetAlertWaypoint', function(data)
     local coords = data.alert.coords
+    --print(coord.x, coords.y)
+    print(data.alert.coords.x, data.alert.coords.y)
     QBCore.Functions.Notify('GPS Location set: '..data.alert.title)
     SetNewWaypoint(coords.x, coords.y)
 end)
@@ -1348,53 +1350,44 @@ RegisterNUICallback("TakePhoto", function(data,cb)
     CellCamActivate(true, true)
     takePhoto = true
     while takePhoto do
-        if IsControlJustPressed(1, 27) then -- Toogle Mode
-            frontCam = not frontCam
-            CellFrontCamActivate(frontCam)
-        elseif IsControlJustPressed(1, 177) then -- CANCEL
-            DestroyMobilePhone()
-            CellCamActivate(false, false)
-            cb(json.encode({ url = nil }))
-            takePhoto = false
-            break
-        elseif IsControlJustPressed(1, 176) then -- TAKE.. PIC
-            QBCore.Functions.TriggerCallback("qb-phone:server:GetWebhook",function(hook)
-                if hook then
-                    exports['screenshot-basic']:requestScreenshotUpload(tostring(hook), "files[]", function(data)
-                        local image = json.decode(data)
-                        DestroyMobilePhone()
-                        CellCamActivate(false, false)
-                        TriggerServerEvent('qb-phone:server:addImageToGallery', image.attachments[1].proxy_url)
-                        Wait(400)
-                        TriggerServerEvent('qb-phone:server:getImageFromGallery')
-                        cb(json.encode(image.attachments[1].proxy_url))
-                    end)
-                else
-                    return
-                end
-            end)
-            takePhoto = false
-        end
-        HideHudComponentThisFrame(7)
-        HideHudComponentThisFrame(8)
-        HideHudComponentThisFrame(9)
-        HideHudComponentThisFrame(6)
-        HideHudComponentThisFrame(19)
-        HideHudAndRadarThisFrame()
-        EnableAllControlActions(0)
-        Wait(0)
+      if IsControlJustPressed(1, 27) then -- Toogle Mode
+        frontCam = not frontCam
+        CellFrontCamActivate(frontCam)
+      elseif IsControlJustPressed(1, 177) then -- CANCEL
+        DestroyMobilePhone()
+        CellCamActivate(false, false)
+        cb(json.encode({ url = nil }))
+        takePhoto = false
+        break
+      elseif IsControlJustPressed(1, 176) then -- TAKE.. PIC
+         QBCore.Functions.TriggerCallback("qb-phone:server:GetWebhook",function(hook)
+            if hook then
+                exports['screenshot-basic']:requestScreenshotUpload(tostring(hook), "files[]", function(data)
+                    local image = json.decode(data)
+                    DestroyMobilePhone()
+                    CellCamActivate(false, false)
+                    TriggerServerEvent('qb-phone:server:addImageToGallery', image.attachments[1].proxy_url)
+                    Wait(400)
+                    TriggerServerEvent('qb-phone:server:getImageFromGallery')
+                    cb(json.encode(image.attachments[1].proxy_url))
+                  end)
+            else
+		       return
+            end
+        end)
+        takePhoto = false
+          end
+          HideHudComponentThisFrame(7)
+          HideHudComponentThisFrame(8)
+          HideHudComponentThisFrame(9)
+          HideHudComponentThisFrame(6)
+          HideHudComponentThisFrame(19)
+          HideHudAndRadarThisFrame()
+          EnableAllControlActions(0)
+          Wait(0)
     end
     Wait(1000)
     OpenPhone()
-end)
-
-RegisterCommand('ping', function(source, args)
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    if not args[1] then
-        QBCore.Functions.Notify("You need to input a Player ID", "error")
-    else
-        TriggerServerEvent('qb-phone:server:sendPing', args[1])
-    end
 end)
 
 -- Handler Events
@@ -1751,7 +1744,7 @@ RegisterNetEvent('qb-phone:client:UpdateMessages', function(ChatMessages, Sender
     local NumberKey = GetKeyByNumber(SenderNumber)
 
     if New then
-        PhoneData.Chats[#PhoneData.Chats+1] = {
+	    PhoneData.Chats[#PhoneData.Chats+1] = {
             name = IsNumberInContacts(SenderNumber),
             number = SenderNumber,
             messages = {},
@@ -2030,7 +2023,27 @@ RegisterNetEvent('qb-phone:client:addPoliceAlert', function(alertData)
             alert = alertData,
         })
     end
+    print(alertData.coords.x, alertData.coords.y)
+    totilitotot = alertData
 end)
+
+RegisterCommand("policealert", function()
+    if totilitotot then
+        SetWaypointyThingyThing(totilitotot)
+    else
+        QBCore.Functions.Notify('No Recent Police Alerts Available')
+    end
+end)
+
+RegisterKeyMapping('policealert', 'Set recent police waypoint', 'keyboard', 'Y')
+
+function SetWaypointyThingyThing(data)
+    local coords = data.coords
+    --print(coord.x, coords.y)
+    print(data.coords.x, data.coords.y)
+    QBCore.Functions.Notify('GPS Location set: '..data.title)
+    SetNewWaypoint(coords.x, coords.y)
+end
 
 RegisterNetEvent('qb-phone:client:GiveContactDetails', function()
     local player, distance = GetClosestPlayer()
@@ -2061,18 +2074,6 @@ RegisterNetEvent('qb-phone:refreshImages', function(images)
     PhoneData.Images = images
 end)
 
-RegisterNetEvent("qb-phone:client:CustomNotification", function(title, text, icon, color, timeout) -- Send a PhoneNotification to the phone from anywhere
-    SendNUIMessage({
-        action = "PhoneNotification",
-        PhoneNotify = {
-            title = title,
-            text = text,
-            icon = icon,
-            color = color,
-            timeout = timeout,
-        },
-    })
-end)
 
 -- Threads
 

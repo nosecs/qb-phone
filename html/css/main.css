@@ -175,19 +175,10 @@ body {
     color: white !important;
 }
 
-#player-id {
-    font-family: 'Poppins', sans-serif;
-    text-transform: uppercase;
-    font-size: 1vh;
-    padding: 2vh 0 0 1vh;
-    float: left;
-    color: white !important;
-}
-
 #phone-time {
     font-family: 'Poppins', sans-serif;
-    font-size: 1vh;
-    padding: 2vh 0 0 5.5vh;
+    font-size: 1.5vh;
+    padding: 1.5vh 0 0 8vh;
     float: left;
     color: white !important;
 }
@@ -297,7 +288,7 @@ body {
 .phone-home-applications {
     position: absolute;
     width: 100%;
-    bottom: 17vh;
+    bottom: 27vh;
 }
 
 .phone-application > i {
