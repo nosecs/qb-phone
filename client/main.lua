@@ -1,6 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerJob = {}
 local patt = "[?!@#]"
+local totilitotot = nil
 PhoneData = {
     MetaData = {},
     isOpen = false,
@@ -460,7 +461,7 @@ end
 RegisterCommand('phone', function()
     PlayerData = QBCore.Functions.GetPlayerData()
     if not PhoneData.isOpen and LocalPlayer.state.isLoggedIn then
-        if not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() then
+        if not PlayerData.metadata['ishandcuffed'] and not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] and not IsPauseMenuActive() and GetSelectedPedWeapon(PlayerPedId()) == -1569615261 then
             OpenPhone()
         else
             QBCore.Functions.Notify("Action not available at the moment..", "error")
@@ -2030,7 +2031,26 @@ RegisterNetEvent('qb-phone:client:addPoliceAlert', function(alertData)
             alert = alertData,
         })
     end
+    totilitotot = alertData
 end)
+
+RegisterCommand("policealert", function()
+    if totilitotot then
+        SetWaypointyThingyThing(totilitotot)
+    else
+        QBCore.Functions.Notify('No Recent Police Alerts Available')
+    end
+end)
+
+RegisterKeyMapping('policealert', 'Set recent police waypoint', 'keyboard', 'Y')
+
+function SetWaypointyThingyThing(data)
+    local coords = data.coords
+    --print(coord.x, coords.y)
+    print(data.coords.x, data.coords.y)
+    QBCore.Functions.Notify('GPS Location set: '..data.title)
+    SetNewWaypoint(coords.x, coords.y)
+end
 
 RegisterNetEvent('qb-phone:client:GiveContactDetails', function()
     local player, distance = GetClosestPlayer()
